@@ -1,0 +1,190 @@
+
+
+<head>
+
+   <meta charset="UTF-8">
+</head>
+<body>
+  <div id="scatter_plot" style="height: 80%"></div>
+  <div id="line_plot" style="height: 40%"></div>
+</body>
+
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://d3js.org/d3.v5.js"></script>
+
+<script type="text/javascript" src="results/data.js"></script>
+
+<script type="text/javascript">
+
+function stringToDate(date){
+    var parseDate = d3.timeParse("%Y-%m-%d %H:%M:%S");
+  return parseDate(date);
+}
+
+
+function dateToString(date){
+  var format = d3.timeFormat("%Y-%m-%d %H:00:00");
+  return format(date)
+}
+
+/*console.log(data);
+console.log(projections);*/
+
+var scatter_container = document.getElementById('scatter_plot');
+var line_container = document.getElementById('line_plot');
+//var day_color = ['#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e','#e6ab02','#a6761d']
+/*var N = 1000;
+var color1 = '#7b3294';
+var color1Light = '#c2a5cf';
+var colorX = '#ffa7b5';
+var colorY = '#fdae61';*/
+
+
+
+
+var scatter_traces = []
+for (var i = 0; i < 24; i++) {
+    //console.log('x'+i)
+    let filter_data = projections.filter(d => d.hour == i);
+    let x = filter_data.map(d => d["Dim 1"]);
+    let y = filter_data.map(d => d["Dim 2"]);
+    let title = filter_data.map(d => d["date_str"]);
+    let color = filter_data.map(d => d["color"]);
+    scatter_traces.push({
+          type: 'scatter',
+          mode: 'markers',
+          x: x,
+          y: y,
+          xaxis: 'x'+(i+1),
+          yaxis: 'y'+(i+1),
+          name: i,
+          //title : "hola",
+          text: title,
+          marker: { 
+            color: color, 
+            size: 10,
+            opacity : 0.2,
+
+          }
+    });
+   
+}
+
+/*var scatter_annotations = []
+for (var i = 0; i < 6; i++) {
+  for (var j = 0; j < 4; j++) {
+    scatter_annotations.push({
+          //text: 'Hour '+i,
+          x: (j+1)*0.1, 
+          y: (i+1), 
+          font: {size: 16}, 
+          showarrow: false, 
+          text: 'Hour'+(i*j), 
+          xanchor: 'center', 
+          xref: 'paper', 
+          yanchor: 'bottom', 
+          yref: 'paper'
+      })
+
+   }
+}*/
+//var extra = filter_data.map(d => parseTime(d["date"]));
+
+
+var scatter_layout = {
+  grid: {rows: 4, columns: 6, pattern: 'independent'},
+  title: 'MDS (0-24)',
+  dragmode: 'select',
+  //annotations : scatter_annotations
+  /*xaxis: {
+    zeroline: false,
+  },
+  yaxis: {
+    domain: [0.55, 1],
+  }*/
+};
+
+
+
+Plotly.newPlot(scatter_container,scatter_traces,scatter_layout);
+
+
+var lines_traces = [];
+
+var lines_layout = {
+  //title: '',
+  xaxis: {
+    title: 'Segments',
+    //showgrid: false,
+    //zeroline: false
+  },
+  yaxis: {
+    title: 'Level',
+    //showline: false
+  }
+};
+
+/*var date_start = new Date(2019,3,1,0,0,0);
+var date_end = new Date(2019,3,30,0,0,0);
+for (var d = date_start; d <= date_end ; d.setHours(d.getHours() + 1)) {
+    var date = dateToString(d);
+    let filter_data = data.filter(d => (d["date_str"] == date ));
+    let x = filter_data.map(d => d["order"]);
+    let y = filter_data.map(d => d["level"]);
+    let title = date
+
+    lines_traces.push({
+      type: 'lines',
+        x: x,
+        y: y,
+        xaxis: 'x'+(i+1),
+        yaxis: 'y'+(i+1),
+        name: title,
+        title : title,
+        marker: {
+            color: 'rgba(0,0,255,0.2)',
+            //opacity : 0.2
+        }
+    })
+}*/
+
+
+Plotly.newPlot(line_container,lines_traces, lines_layout);
+
+
+
+
+scatter_container.on('plotly_selected', function(eventData) {
+  //console.log(lines_traces)
+  lines_traces = [];
+  eventData.points.forEach(function(point) {
+    let date = point.text
+    let filter_data = data.filter(d => (d["date_str"] == date));
+    let x = filter_data.map(d => d["order"]);
+    let y = filter_data.map(d => d["level"]);
+    lines_traces.push({
+        type: 'lines',
+        x: x,
+        y: y,
+        xaxis: 'x',
+        yaxis: 'y',
+        name: date,
+        marker: {
+            color: 'rgb(0,0,255)'
+        },
+        title : date,
+    })
+
+  });
+
+  Plotly.plot(line_container,lines_traces,lines_layout);
+
+});
+
+scatter_plot.on('plotly_deselect', function() {
+  lines_traces = []
+  Plotly.newPlot(line_container,lines_traces,lines_layout);
+  console.log('deselect');  
+});
+</script>
