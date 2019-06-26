@@ -13,7 +13,7 @@
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script src="https://d3js.org/d3.v5.js"></script>
 
-<script type="text/javascript" src="results/data.js"></script>
+<script type="text/javascript" src="data.js"></script>
 
 <script type="text/javascript">
 
@@ -158,7 +158,11 @@ Plotly.newPlot(line_container,lines_traces, lines_layout);
 scatter_container.on('plotly_selected', function(eventData) {
   //console.log(lines_traces)
   lines_traces = [];
+  let number_points = eventData.points.length;
+  alert("Points Selected:" + number_points)
   eventData.points.forEach(function(point) {
+    console.log(point)
+
     let date = point.text
     let filter_data = data.filter(d => (d["date_str"] == date));
     let x = filter_data.map(d => d["order"]);
@@ -171,7 +175,8 @@ scatter_container.on('plotly_selected', function(eventData) {
         yaxis: 'y',
         name: date,
         marker: {
-            color: 'rgb(0,0,255)'
+            color: point.data.marker.color[point.pointIndex],
+            opacity : 0.2
         },
         title : date,
     })
